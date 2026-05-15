@@ -109,7 +109,7 @@ function toggleForm(){
 
 /* LOAD DONORS */
 function loadDonors(){
-    fetch("http://localhost:8080/blood")
+    fetch("/blood")
     .then(res => res.json())
     .then(data => {
         const tbody = document.querySelector("#donorTable tbody");
@@ -153,28 +153,32 @@ function addDonor(){
         phone: phone.value
     };
 
-    fetch("http://localhost:8080/blood", {
+    fetch("/blood", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(donor)
     })
-    .then(() => {
+    .then(res => {
+        if(!res.ok) throw new Error("Failed to add donor");
         alert("Donor Added ✅");
         donorForm.style.display = "none";
         loadDonors();
-    });
+    })
+    .catch(err => alert(err));
 }
 
 /* DELETE DONOR */
 function deleteDonor(id){
     if(confirm("Are you sure to delete this donor?")){
-        fetch(`http://localhost:8080/blood/${id}`, {
+        fetch(`/blood/${id}`, {
             method: "DELETE"
         })
-        .then(() => {
+        .then(res => {
+            if(!res.ok) throw new Error("Failed to delete donor");
             alert("Deleted Successfully ✅");
             loadDonors();
-        });
+        })
+        .catch(err => alert(err));
     }
 }
 

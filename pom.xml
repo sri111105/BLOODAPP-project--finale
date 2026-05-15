@@ -55,13 +55,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
-    <version>8.1.1</version> <!-- latest stable version -->
-</dependency>
-
-
 	<build>
 		<plugins>
 			<plugin>

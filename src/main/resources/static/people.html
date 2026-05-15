@@ -53,15 +53,17 @@ function addDonor(){
 
     console.log(donor); // optional: check JSON before POST
 
-    fetch("http://localhost:8080/blood", {
+    fetch("/blood", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(donor)
     })
-    .then(() => {
+    .then(res => {
+        if(!res.ok) throw new Error("Failed to add donor");
         alert("Thank you for donating blood!");
         window.location.href = "index.html";
-    });
+    })
+    .catch(err => alert(err));
 }
 </script>
 
