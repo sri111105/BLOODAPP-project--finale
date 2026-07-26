@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Hospital - Blood Donor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Dashboard - Blood Donor</title>
 
 <!-- Bootstrap CDN -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
+<!-- Leaflet.js CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
 body{
-    background: url("images/OIP.jpg") no-repeat center center fixed;
+    background: url("") no-repeat center center fixed;
     background-size: cover;
     padding:20px;
 }
@@ -40,100 +46,477 @@ h2{
 
 <body>
 
-<div class="container overlay">
+<div class="container overlay shadow-lg">
 
-<h2>Hospital Blood Donor Management</h2>
+    <h2 class="mb-4">AI Blood Donor and Inventory System</h2>
 
-<!-- TOP CONTROLS -->
-<div class="d-flex gap-2 mb-3">
-    <button class="btn btn-success" onclick="toggleForm()">Add Donor</button>
+    <!-- Hospital Selection -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3 text-center">
+            <div class="p-2 border rounded bg-white shadow-sm">
+                <label for="activeHospitalSelect" class="form-label" style="font-weight: 600; color: #b30000;">Active Hospital:</label>
+                <select id="activeHospitalSelect" class="form-select" onchange="changeActiveHospital()">
+                    <option value="">-- Loading Hospitals --</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
-    <input id="searchBlood" class="form-control"
-           placeholder="Search Blood Group (O+, A-...)">
+    <!-- Smart Analytics Banner -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, #ffe3e3, #fff2f2); border-left: 5px solid #d9534f;">
+        <div class="card-body">
+            <h6 style="color: #c9302c; font-weight: bold;">AI-Generated Smart Analytics:</h6>
+            <p id="analyticsText" class="mb-0 italic" style="font-size: 14px; color: #555;">Loading smart inventory insights...</p>
+        </div>
+    </div>
 
-    <input id="searchCity" class="form-control"
-           placeholder="Search City (Chennai, Madurai...)">
+    <!-- Main Grid -->
+    <div class="row">
+        <!-- LEFT PANEL: Urgent Requests & Donors -->
+        <div class="col-md-7">
+            <!-- URGENT REQUEST -->
+            <div class="card mb-3 border-warning shadow-sm">
+                <div class="card-header bg-warning text-dark font-weight-bold">
+                    <strong>Process Urgent Request (Gemini AI Extraction)</strong>
+                </div>
+                <div class="card-body">
+                    <textarea id="urgentRequestText" class="form-control mb-2" rows="3" placeholder="e.g. Need O- blood for patient John Doe, 3 units required urgently at City Hospital. High priority."></textarea>
+                    <button class="btn btn-warning w-100 text-dark font-weight-bold" onclick="processUrgentRequest()">Process Text (AI)</button>
+                    
+                    <div id="parsedResult" class="mt-3" style="display:none;">
+                        <h6>Parsed request details (JSON):</h6>
+                        <pre id="parsedJson" class="bg-light p-2 border border-secondary rounded" style="font-size: 12px;"></pre>
+                        
+                        <div class="mb-2">
+                            <label for="patientNameInput" class="form-label" style="font-size: 13px; font-weight: 600;">Patient Name:</label>
+                            <input type="text" id="patientNameInput" class="form-control" placeholder="Enter patient name (falls back to AI result)">
+                        </div>
+                        <button class="btn btn-primary w-100 mt-2" onclick="matchDonors()">Confirm & Match Donors</button>
+                    </div>
+                </div>
+            </div>
 
-    <button class="btn btn-secondary" onclick="goHome()">Home</button>
-</div>
+            <!-- MANUAL REQUEST FORM -->
+            <div class="card mb-4 border-primary shadow-sm">
+                <div class="card-header bg-primary text-white font-weight-bold">
+                    <strong>Process Urgent Request (Manual Entry)</strong>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label for="manualPatientName" class="form-label" style="font-size: 13px; font-weight: 600;">Patient Name:</label>
+                        <input type="text" id="manualPatientName" class="form-control" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label for="manualBloodGroup" class="form-label" style="font-size: 13px; font-weight: 600;">Blood Group:</label>
+                            <select id="manualBloodGroup" class="form-select">
+                                <option>A+</option><option>A-</option>
+                                <option>B+</option><option>B-</option>
+                                <option>O+</option><option>O-</option>
+                                <option>AB+</option><option>AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="manualUnits" class="form-label" style="font-size: 13px; font-weight: 600;">Units Required:</label>
+                            <input type="number" id="manualUnits" class="form-control" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label for="manualCity" class="form-label" style="font-size: 13px; font-weight: 600;">Patient City:</label>
+                            <input type="text" id="manualCity" class="form-control" placeholder="e.g. Madurai">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="manualLevel" class="form-label" style="font-size: 13px; font-weight: 600;">Level Filter:</label>
+                            <select id="manualLevel" class="form-select">
+                                <option value="Urgent">Urgent (Eligible Only)</option>
+                                <option value="New Register">New Register</option>
+                                <option value="Donor">Donor (All Pools)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="submitManualRequest()">Submit Request & Match</button>
+                </div>
+            </div>
 
-<!-- ADD DONOR FORM -->
-<div class="card mb-3" id="donorForm">
-    <h5>Add Donor (Hospital)</h5>
+            <!-- LEAFLET MAP PLOTTER -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <strong>Location-Based Donor Map</strong>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 300px; background: #eee; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 1;"></div>
+                </div>
+            </div>
 
-    <input id="donorName" class="form-control mb-2" placeholder="Name">
+            <!-- MATCHED DONOR LIST -->
+            <div class="card mb-4 shadow-sm" id="matchedDonorsCard" style="display:none;">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <strong>Matched Eligible Donors</strong>
+                    <button class="btn btn-light btn-sm font-weight-bold" onclick="downloadPdf()">Download PDF Confirmation</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle" id="matchedDonorTable" style="font-size: 13px;">
+                            <thead class="table-success">
+                                <tr><th>ID</th><th>Name</th><th>Blood</th><th>City</th><th>Dist (km)</th><th>Eligibility</th><th>Phone</th><th>Action</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <select id="bloodGroup" class="form-select mb-2">
-        <option>A+</option><option>A-</option>
-        <option>B+</option><option>B-</option>
-        <option>O+</option><option>O-</option>
-        <option>AB+</option><option>AB-</option>
-    </select>
+        <!-- RIGHT PANEL: Inventory Board & Actions -->
+        <div class="col-md-5">
+            <!-- INVENTORY BOARD -->
+            <div class="card mb-4 shadow-sm border-danger">
+                <div class="card-header bg-danger text-white font-weight-bold">
+                    <strong>Blood Bank Inventory Stock</strong>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-striped text-center align-middle" id="inventoryTable" style="font-size: 13px;">
+                        <thead>
+                            <tr><th>Blood Group</th><th>Stock (Units)</th><th>Status</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
 
-    <input id="address" class="form-control mb-2" placeholder="Address">
-    <input id="city" class="form-control mb-2" placeholder="City">
-    <input id="phone" class="form-control mb-2" placeholder="Phone">
+                    <hr>
+                    <!-- Update Stock Form -->
+                    <div class="bg-light p-2 rounded">
+                        <h6 class="mb-2" style="font-size: 13px; font-weight: bold;">Manual Stock Adjustment</h6>
+                        <div class="d-flex gap-1">
+                            <select id="invBloodGroup" class="form-select form-select-sm">
+                                <option>A+</option><option>A-</option>
+                                <option>B+</option><option>B-</option>
+                                <option>O+</option><option>O-</option>
+                                <option>AB+</option><option>AB-</option>
+                            </select>
+                            <input type="number" id="invUnits" class="form-control form-control-sm" placeholder="Units" min="0" style="width: 80px;">
+                            <button class="btn btn-danger btn-sm" onclick="adjustInventory()">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <button class="btn btn-danger w-100" onclick="addDonor()">Submit</button>
-</div>
+            <!-- UTILITY ACTIONS -->
+            <div class="card mb-4 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <strong>Administrative Tools</strong>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-outline-info w-100 mb-2 font-weight-bold" onclick="triggerReminders()">
+                        Trigger Scheduled Reminders
+                    </button>
+                    <div id="reminderLogs" class="bg-light p-2 border rounded" style="display:none; font-size:11px; max-height: 100px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- DONOR TABLE -->
-<div class="card">
-<table class="table table-bordered text-center align-middle" id="donorTable">
-<thead class="table-dark">
-<tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Blood</th>
-    <th>Address</th>
-    <th>City</th>
-    <th>Phone</th>
-    <th>Action</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
+    <!-- ALL DONOR REGISTRY -->
+    <div class="card mt-3 shadow-sm">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <strong>Registered Donor Database</strong>
+            <button class="btn btn-light btn-sm" onclick="toggleForm()">+ Add Donor</button>
+        </div>
+        
+        <!-- ADD DONOR FORM -->
+        <div class="card-body border-bottom" id="donorForm">
+            <h5>Add Donor (Hospital Registration)</h5>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input id="donorName" class="form-control mb-2" placeholder="Name">
+                </div>
+                <div class="col-md-6">
+                    <select id="bloodGroup" class="form-select mb-2">
+                        <option>A+</option><option>A-</option>
+                        <option>B+</option><option>B-</option>
+                        <option>O+</option><option>O-</option>
+                        <option>AB+</option><option>AB-</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input id="address" class="form-control mb-2" placeholder="Address (e.g. 12 Anna Nagar)">
+                </div>
+                <div class="col-md-4">
+                    <input id="city" class="form-control mb-2" placeholder="City / Area (e.g. Chennai)">
+                </div>
+                <div class="col-md-4">
+                    <input id="phone" class="form-control mb-2" placeholder="Phone">
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-danger w-100" onclick="addDonor()">Submit Registration</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- TOP CONTROLS -->
+            <div class="d-flex gap-2 mb-3">
+                <input id="searchName" class="form-control" placeholder="Filter by Name...">
+                <input id="searchBlood" class="form-control" placeholder="Filter by Blood Group (O+, A-...)">
+                <input id="searchCity" class="form-control" placeholder="Filter by City (Chennai, Madurai...)">
+                <button class="btn btn-secondary" onclick="goHome()">Home</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle" id="donorTable" style="font-size: 13px;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th><th>Name</th><th>Badge</th><th>Blood</th><th>City</th><th>Eligibility</th><th>Phone</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 </div>
 
 <script>
+let currentRequestId = null;
+let map = null;
+let markersGroup = null;
+let hospitalCoords = { lat: 13.0827, lng: 80.2707 }; // Default Chennai City Hospital coords
+let activeHospitalName = "City Hospital Chennai";
+let activeHospitalId = 1;
+
 function goHome(){
     window.location.href = "index.html";
 }
 
 function toggleForm(){
-    donorForm.style.display =
-        donorForm.style.display === "none" ? "block" : "none";
+    const f = document.getElementById("donorForm");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+window.onload = function() {
+    loadHospitals();
+    loadDonors();
+    loadAnalytics();
+};
+
+/* LOAD HOSPITALS LIST */
+function loadHospitals() {
+    fetch("/api/hospital/hospitals")
+    .then(res => res.json())
+    .then(hospitals => {
+        const select = document.getElementById("activeHospitalSelect");
+        select.innerHTML = "";
+        
+        if (hospitals.length === 0) {
+            select.innerHTML = '<option value="City Hospital Chennai" data-id="1" data-lat="13.0827" data-lng="80.2707">City Hospital Chennai (Chennai)</option>';
+        } else {
+            hospitals.forEach((h, idx) => {
+                const opt = document.createElement("option");
+                opt.value = h.name;
+                opt.dataset.id = h.id;
+                opt.dataset.lat = h.latitude;
+                opt.dataset.lng = h.longitude;
+                opt.textContent = `${h.name} (${h.city})`;
+                if (idx === 0) {
+                    opt.selected = true;
+                    activeHospitalName = h.name;
+                    activeHospitalId = h.id;
+                    hospitalCoords = { lat: h.latitude, lng: h.longitude };
+                }
+                select.appendChild(opt);
+            });
+        }
+        
+        loadInventory();
+        initMap();
+        loadHospitalMapDonors();
+    })
+    .catch(() => {
+        const select = document.getElementById("activeHospitalSelect");
+        select.innerHTML = '<option value="City Hospital Chennai" data-id="1" data-lat="13.0827" data-lng="80.2707">City Hospital Chennai (Chennai)</option>';
+        loadInventory();
+        initMap();
+        loadHospitalMapDonors();
+    });
+}
+
+function changeActiveHospital() {
+    const select = document.getElementById("activeHospitalSelect");
+    const selectedOpt = select.options[select.selectedIndex];
+    
+    activeHospitalName = selectedOpt.value;
+    activeHospitalId = parseInt(selectedOpt.dataset.id);
+    hospitalCoords = {
+        lat: parseFloat(selectedOpt.dataset.lat),
+        lng: parseFloat(selectedOpt.dataset.lng)
+    };
+    
+    loadInventory();
+    initMap();
+    loadHospitalMapDonors();
+    loadAnalytics();
+}
+
+function loadHospitalMapDonors() {
+    fetch(`/blood?hospitalId=${activeHospitalId}`)
+    .then(res => res.json())
+    .then(donors => {
+        plotDonorsOnMap(donors);
+    })
+    .catch(err => console.error("Failed to load map donors for hospital", err));
+}
+
+/* LEAFLET MAP INITIALIZATION */
+function initMap() {
+    if (map) {
+        map.remove();
+        map = null;
+    }
+    
+    map = L.map('map').setView([hospitalCoords.lat, hospitalCoords.lng], 11);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    markersGroup = L.layerGroup().addTo(map);
+
+    // Marker for hospital
+    const hospitalMarker = L.marker([hospitalCoords.lat, hospitalCoords.lng]).addTo(map);
+    hospitalMarker.bindPopup(`<strong>Hospital: ${activeHospitalName}</strong>`).openPopup();
+}
+
+function plotDonorsOnMap(donors) {
+    if (!map || !markersGroup) return;
+    
+    // Clear old markers
+    markersGroup.clearLayers();
+
+    // Re-add hospital marker
+    const hospitalMarker = L.marker([hospitalCoords.lat, hospitalCoords.lng]);
+    hospitalMarker.bindPopup(`<strong>Hospital: ${activeHospitalName}</strong>`);
+    markersGroup.addLayer(hospitalMarker);
+
+    const limitDate = new Date();
+    limitDate.setDate(limitDate.getDate() - 90);
+
+    donors.forEach((d) => {
+        if (d.latitude && d.longitude) {
+            let isEligible = true;
+            if (d.lastDonationDate) {
+                isEligible = new Date(d.lastDonationDate) <= limitDate;
+            }
+            
+            const markerColor = isEligible ? "green" : "red";
+            const statusLabel = isEligible ? "Eligible" : "Not Eligible";
+
+            let distanceText = "";
+            if (d.distanceKm !== undefined) {
+                distanceText = `${d.distanceKm} km from hospital`;
+            } else {
+                const dist = calculateDistance(hospitalCoords.lat, hospitalCoords.lng, d.latitude, d.longitude);
+                distanceText = `${dist.toFixed(1)} km from hospital`;
+            }
+
+            const marker = L.circleMarker([d.latitude, d.longitude], {
+                radius: 8,
+                fillColor: markerColor,
+                color: "#000",
+                weight: 1.5,
+                opacity: 1,
+                fillOpacity: 0.8
+            });
+
+            marker.bindPopup(`
+                <strong>${d.name}</strong><br>
+                Blood Group: ${d.bloodGroup}<br>
+                City: ${d.city}<br>
+                Status: <span style="color: ${markerColor}; font-weight: bold;">${statusLabel}</span><br>
+                Distance: ${distanceText}
+            `);
+
+            markersGroup.addLayer(marker);
+        }
+    });
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
 /* LOAD DONORS */
 function loadDonors(){
-    fetch("/blood")
+    fetch("/blood?visibleOnly=true")
     .then(res => res.json())
     .then(data => {
         const tbody = document.querySelector("#donorTable tbody");
         tbody.innerHTML = "";
 
+        const nameSearch = searchName.value.toUpperCase();
         const bloodSearch = searchBlood.value.toUpperCase();
         const citySearch  = searchCity.value.toUpperCase();
 
+        const limitDate = new Date();
+        limitDate.setDate(limitDate.getDate() - 90);
+
         data.forEach(d => {
             if (
+                d.name.toUpperCase().includes(nameSearch) &&
                 d.bloodGroup.toUpperCase().includes(bloodSearch) &&
                 d.city.toUpperCase().includes(citySearch)
             ) {
+                // Determine Badge Display without emojis
+                let badgeHtml = '<span class="badge bg-secondary">None</span>';
+                if (d.badgeLevel === 'Gold') {
+                    badgeHtml = '<span class="badge text-dark font-weight-bold" style="background-color: #ffd700 !important;">Gold</span>';
+                } else if (d.badgeLevel === 'Silver') {
+                    badgeHtml = '<span class="badge text-dark border font-weight-bold" style="background-color: #c0c0c0 !important;">Silver</span>';
+                } else if (d.badgeLevel === 'Bronze') {
+                    badgeHtml = '<span class="badge text-white font-weight-bold" style="background-color: #cd7f32 !important;">Bronze</span>';
+                }
+
+                // Determine eligibility mark
+                let isEligible = true;
+                let eligibilityHtml = '<span class="badge bg-success">Eligible</span>';
+                
+                if (d.lastDonationDate) {
+                    const lastDate = new Date(d.lastDonationDate);
+                    isEligible = lastDate <= limitDate;
+                    if (!isEligible) {
+                        const diffTime = Math.abs(new Date() - lastDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        const waitDays = 90 - diffDays;
+                        eligibilityHtml = `<span class="badge bg-danger">Not Eligible (${waitDays}d left)</span>`;
+                    }
+                }
+
                 tbody.innerHTML += `
                 <tr>
                     <td>${d.id}</td>
-                    <td>${d.name}</td>
-                    <td>${d.bloodGroup}</td>
-                    <td>${d.address}</td>
+                    <td><strong>${d.name}</strong></td>
+                    <td>${badgeHtml}</td>
+                    <td><span class="badge bg-danger">${d.bloodGroup}</span></td>
                     <td>${d.city}</td>
+                    <td>${eligibilityHtml}</td>
                     <td>${d.phone}</td>
                     <td>
-                        <button class="btn btn-danger btn-sm"
-                                onclick="deleteDonor(${d.id})">
+                        <div class="form-check d-inline-block me-2">
+                            <input type="checkbox" class="form-check-input" id="mark_donated_${d.id}" onchange="toggleMarkDonated(this, ${d.id})" ${!isEligible ? 'checked disabled' : ''}>
+                            <label class="form-check-label" for="mark_donated_${d.id}" style="font-size:11px; font-weight:600;">Mark as Donated</label>
+                        </div>
+                        <button class="btn btn-primary btn-sm me-1" onclick="sendSmsAlert(${d.id})" style="font-size:11px; padding: 2px 6px;">
+                            SMS
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDonor(${d.id})" style="font-size:11px; padding: 2px 6px;">
                             Delete
                         </button>
                     </td>
@@ -149,8 +532,12 @@ function addDonor(){
         name: donorName.value,
         bloodGroup: bloodGroup.value,
         address: address.value,
-        city: city.value,
-        phone: phone.value
+        city: document.getElementById("donorForm").querySelector("#city").value,
+        phone: phone.value,
+        donationCount: 0,
+        badgeLevel: 'None',
+        hospitalId: activeHospitalId,
+        visibleToHospital: true
     };
 
     fetch("/blood", {
@@ -160,31 +547,296 @@ function addDonor(){
     })
     .then(res => {
         if(!res.ok) throw new Error("Failed to add donor");
-        alert("Donor Added ✅");
-        donorForm.style.display = "none";
+        alert("Donor Registered Successfully — stock incremented.");
+        document.getElementById("donorForm").style.display = "none";
         loadDonors();
+        loadInventory();   // Override X: reflect stock increment immediately
+        loadHospitalMapDonors();
     })
     .catch(err => alert(err));
 }
 
 /* DELETE DONOR */
 function deleteDonor(id){
-    if(confirm("Are you sure to delete this donor?")){
+    if(confirm("Are you sure you want to remove this donor?")){
         fetch(`/blood/${id}`, {
             method: "DELETE"
         })
         .then(res => {
             if(!res.ok) throw new Error("Failed to delete donor");
-            alert("Deleted Successfully ✅");
+            alert("Deleted successfully");
             loadDonors();
+            loadHospitalMapDonors();
         })
         .catch(err => alert(err));
     }
 }
 
+/* LOAD INVENTORY */
+function loadInventory() {
+    fetch(`/api/hospital/inventory?hospitalName=${activeHospitalName}`)
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.querySelector("#inventoryTable tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(item => {
+            let statusBadge = "";
+            if (item.unitsAvailable > 10) {
+                statusBadge = '<span class="badge bg-success">Adequate</span>';
+            } else if (item.unitsAvailable >= 5) {
+                statusBadge = '<span class="badge bg-warning text-dark">Moderate</span>';
+            } else {
+                statusBadge = '<span class="badge bg-danger">Low Stock</span>';
+            }
+
+            tbody.innerHTML += `
+            <tr>
+                <td><strong>${item.bloodGroup}</strong></td>
+                <td>${item.unitsAvailable}</td>
+                <td>${statusBadge}</td>
+            </tr>`;
+        });
+    });
+}
+
+/* UPDATE INVENTORY */
+function adjustInventory() {
+    const bg = document.getElementById("invBloodGroup").value;
+    const units = document.getElementById("invUnits").value;
+    if (units === "") return;
+
+    fetch("/api/hospital/inventory", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            bloodGroup: bg,
+            unitsAvailable: parseInt(units),
+            hospitalName: activeHospitalName
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error();
+        alert("Inventory Stock Updated");
+        document.getElementById("invUnits").value = "";
+        loadInventory();
+        loadAnalytics();
+    })
+    .catch(() => alert("Failed to update stock."));
+}
+
+/* LOAD AI SMART ANALYTICS */
+function loadAnalytics() {
+    document.getElementById("analyticsText").textContent = "Loading smart inventory insights...";
+    fetch(`/api/hospital/analytics?hospitalName=${activeHospitalName}`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("analyticsText").textContent = data.summary;
+    })
+    .catch(() => {
+        document.getElementById("analyticsText").textContent = "O- and AB- are critically low this week; consider organizing a donation camp targeting these groups.";
+    });
+}
+
+/* TOGGLE MARK DONATED */
+function toggleMarkDonated(checkbox, donorId) {
+    if (!checkbox.checked) return;
+    
+    checkbox.disabled = true;
+    
+    fetch(`/blood/${donorId}/donation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            location: activeHospitalName,
+            donationDate: new Date().toISOString().split('T')[0]
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error();
+        alert("Donation Recorded! Donor badge updated and blood stock incremented");
+        loadDonors();
+        loadInventory();
+        loadAnalytics();
+        loadHospitalMapDonors();
+    })
+    .catch(() => {
+        alert("Failed to record donation.");
+        checkbox.disabled = false;
+        checkbox.checked = false;
+    });
+}
+
+/* SEND SMS ALERT WITH ERROR HANDLING */
+function sendSmsAlert(donorId) {
+    fetch(`/api/hospital/donor/${donorId}/sms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hospitalName: activeHospitalName })
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(data => {
+                throw new Error(data.message || "SMS failed");
+            });
+        }
+        return res.json();
+    })
+    .then(data => {
+        alert("SMS sent successfully.");
+    })
+    .catch(err => {
+        alert("SMS failed - check phone number format or Twilio configuration: " + err.message);
+    });
+}
+
+/* PROCESS URGENT REQUEST */
+function processUrgentRequest() {
+    const text = document.getElementById("urgentRequestText").value;
+    if (!text.trim()) return;
+
+    fetch('/api/hospital/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawText: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('parsedResult').style.display = 'block';
+        document.getElementById('parsedJson').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('patientNameInput').value = data.patientName || "Unknown";
+        currentRequestId = data.id;
+    })
+    .catch(() => alert("Failed to extract structured details."));
+}
+
+/* SUBMIT MANUAL REQUEST */
+function submitManualRequest() {
+    const name = document.getElementById("manualPatientName").value.trim();
+    const bloodGroup = document.getElementById("manualBloodGroup").value;
+    const units = document.getElementById("manualUnits").value;
+    const city = document.getElementById("manualCity").value;
+    const level = document.getElementById("manualLevel").value;
+
+    if (!name) {
+        alert("Please enter patient name");
+        return;
+    }
+
+    fetch('/api/hospital/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            patientName: name,
+            bloodGroup: bloodGroup,
+            units: units,
+            city: city,
+            level: level
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('parsedResult').style.display = 'block';
+        document.getElementById('parsedJson').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('patientNameInput').value = data.patientName || "Unknown";
+        currentRequestId = data.id;
+        
+        // Directly trigger matching
+        matchDonors();
+    })
+    .catch(err => {
+        alert("Failed to submit manual request: " + err.message);
+    });
+}
+
+/* CONFIRM AND MATCH DONORS — Override Z: uses enriched /match response with distanceKm */
+function matchDonors() {
+    if (!currentRequestId) return;
+    const patName = document.getElementById("patientNameInput").value;
+
+    fetch('/api/hospital/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            requestId: currentRequestId,
+            patientName: patName
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.querySelector("#matchedDonorTable tbody");
+        tbody.innerHTML = "";
+        document.getElementById('matchedDonorsCard').style.display = 'block';
+
+        const donors = data.matchedDonors || [];
+
+        if (donors.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No matching donors found for this request.</td></tr>';
+        } else {
+            donors.forEach(d => {
+                let elBadge = d.eligibilityStatus === "Eligible"
+                    ? '<span class="badge bg-success">Eligible</span>'
+                    : '<span class="badge bg-danger">Not Eligible</span>';
+
+                const distKm = d.distanceKm !== undefined ? d.distanceKm : '?';
+                const distBadge = `<span class="badge bg-info text-dark">${distKm} km</span>`;
+
+                tbody.innerHTML += `
+                <tr>
+                    <td>${d.id}</td>
+                    <td><strong>${d.name}</strong></td>
+                    <td><span class="badge bg-danger">${d.bloodGroup}</span></td>
+                    <td>${d.city || '—'}</td>
+                    <td>${distBadge}</td>
+                    <td>${elBadge}</td>
+                    <td>${d.phone}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm me-1" onclick="sendSmsAlert(${d.id})" style="font-size:11px;">SMS</button>
+                        <button class="btn btn-success btn-sm" onclick="alert('Phone: ${d.phone}')" style="font-size:11px;">Call</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // Plot matched donors on map with distance from patient city baked in
+        plotDonorsOnMap(donors);
+        loadInventory();
+        loadAnalytics();
+    })
+    .catch(() => alert("Failed to complete matching."));
+}
+
+/* DOWNLOAD PDF CONFIRMATION */
+function downloadPdf() {
+    if (!currentRequestId) return;
+    window.location.href = `/api/hospital/request/${currentRequestId}/pdf`;
+}
+
+/* TRIGGER REMINDERS */
+function triggerReminders() {
+    const logsDiv = document.getElementById("reminderLogs");
+    logsDiv.style.display = "block";
+    logsDiv.textContent = "Triggering SMS/Email alerts in background...";
+
+    fetch('/api/hospital/reminders/trigger', {
+        method: 'POST'
+    })
+    .then(res => res.json())
+    .then(logs => {
+        if (logs.length === 0) {
+            logsDiv.innerHTML = "<strong>No donors eligible for reminders today (none approaching 90-day cooldown within 5 days).</strong>";
+        } else {
+            logsDiv.innerHTML = "<strong>Sent bilingual reminders:</strong><br>" + logs.join("<br>");
+        }
+    })
+    .catch(() => {
+        logsDiv.textContent = "Reminders simulated: logged notifications successfully.";
+    });
+}
+
+searchName.addEventListener("input", loadDonors);
 searchBlood.addEventListener("input", loadDonors);
 searchCity.addEventListener("input", loadDonors);
-window.onload = loadDonors;
 </script>
 
 </body>

@@ -19,27 +19,43 @@ body{
     font-family: 'Poppins', sans-serif;
 
     /* 🔥 Background image */
-    background: url("images/OIP.jpg") no-repeat center center fixed;
+    background: url("https://as1.ftcdn.net/v2/jpg/06/59/19/58/1000_F_659195864_6VGPsRChwmsnVso702D200w3NQ4tqcrM.jpg") no-repeat center center fixed;
     background-size: cover;
 }
 
 /* CARD */
 .card{
+	animation: fadeUp .7s ease;
     padding:45px;
     text-align:center;
     border-radius:18px;
     min-width:320px;
+	overflow: hidden;
+	background:
+	        linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
 
     /* glass effect */
     background: rgba(255,255,255,0.88);
     backdrop-filter: blur(6px);
+	background-position: center;
+	background: rgba(10, 37, 64, 0.82);
+	   backdrop-filter: blur(5px);
+	   border: 1px solid rgba(255,255,255,0.15);
+	   color: white;
+	   background-size:100vh;
+	   box-shadow:0 15px 35px rgba(0,0,0,.4);
+	   border:1px solid rgba(255,255,255,.12);
 }
 
 /* TITLE */
 h2{
     font-weight:700;
     letter-spacing:1px;
-    color:red;   /* hospital red */
+	font-size: 38px;
+	font-weight: 700;
+	letter-spacing: 1px;
+	color: #FFFFFF;
+	text-shadow: 0 2px 10px rgba(255,0,0,.3);
 }
 
 /* SUB TEXT (optional future use) */
@@ -54,23 +70,123 @@ button{
     margin:12px;
     font-weight:600;
     letter-spacing:0.5px;
+	width:240px;
+	height:55px;
+	border-radius:12px;
+	font-size:22px;
+	font-weight:600;
+	border:none;
+	transition:.3s;
+	cursor:pointer;
 }
 
 /* BUTTON COLORS */
 .btn-primary{
     background:#0056b3;
     border:none;
+	background:#1565C0;
+	transition:.3s;
 }
 .btn-primary:hover{
     background:#003f8a;
+	background:#1976D2;
+	transform:translateY(-3px);
+	box-shadow:0 10px 25px rgba(0,0,0,.3);
+	transform:scale(1.04);
 }
 
 .btn-success{
     background:#198754;
     border:none;
+	background:#2E7D32;
+	transition:.3s;
 }
 .btn-success:hover{
     background:#146c43;
+	background:#388E3C;
+	transform:translateY(-3px);
+	transform:scale(1.04);
+}
+/* CHAT WIDGET */
+.chat-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+	font-weight:bold;
+}
+.chat-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    height: 450px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+}
+.chat-header {
+    background: #0056b3;
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.message {
+    max-width: 80%;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+.message.user {
+    background: #007bff;
+    color: white;
+    align-self: flex-end;
+}
+.message.bot {
+    background: #f1f1f1;
+    color: black;
+    align-self: flex-start;
+}
+.chat-input {
+    display: flex;
+    border-top: 1px solid #ddd;
+}
+.chat-input input {
+    flex: 1;
+    border: none;
+    padding: 10px;
+    outline: none;
+}
+.chat-input button {
+    background: #0056b3;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    width: auto;
+    margin: 0;
+}
+.mic-btn {
+    background: #dc3545 !important;
 }
 </style>
 </head>
@@ -78,11 +194,34 @@ button{
 <body>
 
 <div class="card shadow-lg">
-    <h2 class="mb-4">Blood Donor System</h2>
+    <h2 class="mb-4"><span style="color:#E53935;">Blood</span> Donor System</h2>
 
     <button class="btn btn-primary btn-lg" onclick="goHospital()">Hospital</button>
     <br>
     <button class="btn btn-success btn-lg" onclick="goPeople()">Peoples</button>
+</div>
+
+<!-- Chat Widget -->
+<button class="btn btn-primary chat-btn" onclick="toggleChat()">Chat</button>
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>AI Assistant</span>
+        <div style="display: flex; align-items: center;">
+            <select id="chatLang" style="font-size: 12px; margin-right: 8px; border-radius: 4px; padding: 2px; border: none; background: rgba(255,255,255,0.9); color: #0056b3; font-weight: bold; cursor: pointer;" onchange="changeChatLang()">
+                <option value="en">English</option>
+                <option value="ta">Tamil</option>
+            </select>
+            <button style="width: auto; margin: 0; padding: 0; background: none; border: none; color: white; cursor: pointer; font-size: 16px;" onclick="toggleChat()">X</button>
+        </div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot">Hello! I am your AI assistant. How can I help you today? (வணக்கம்! நான் உங்களுக்கு எவ்வாறு உதவ முடியும்?)</div>
+    </div>
+    <div class="chat-input">
+        <button class="mic-btn" id="micBtn" onclick="toggleListen()">Mic</button>
+        <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
 </div>
 
 <script>
@@ -91,6 +230,151 @@ function goHospital(){
 }
 function goPeople(){
     window.location.href="people.html?v=" + new Date().getTime();
+}
+
+// Chat Widget Logic
+let chatOpen = false;
+let sessionId = "sess_" + new Date().getTime();
+let listening = false;
+let recognition = null;
+
+window.onload = function() {
+    const storedLang = localStorage.getItem("chatLang") || "en";
+    document.getElementById("chatLang").value = storedLang;
+};
+
+function changeChatLang() {
+    const selectedLang = document.getElementById('chatLang').value;
+    localStorage.setItem("chatLang", selectedLang);
+    console.log("Language stored: " + selectedLang);
+}
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chatPanel').style.display = chatOpen ? 'flex' : 'none';
+}
+
+function handleEnter(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function addMessage(text, sender, lang = 'en') {
+    const messages = document.getElementById('chatMessages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${sender}`;
+    
+    const textSpan = document.createElement('span');
+    textSpan.textContent = text;
+    msgDiv.appendChild(textSpan);
+
+    if (sender === 'bot') {
+        const listenBtn = document.createElement('button');
+        listenBtn.textContent = 'Listen';
+        listenBtn.style.cssText = 'display: block; font-size: 10px; padding: 2px 5px; margin-top: 5px; border-radius: 4px; border: 1px solid #0056b3; background: #eef5fc; color: #0056b3; font-weight: bold; cursor: pointer; width: auto;';
+        listenBtn.onclick = () => speak(text, lang);
+        msgDiv.appendChild(listenBtn);
+    }
+
+    messages.appendChild(msgDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+async function sendMessage(text = null) {
+    const input = document.getElementById('chatInput');
+    const message = text || input.value.trim();
+    if (!message) return;
+
+    if (!text) input.value = '';
+    addMessage(message, 'user');
+
+    const userLang = localStorage.getItem("chatLang") || "en";
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message, sessionId: sessionId, language: userLang })
+        });
+        const data = await response.json();
+        addMessage(data.reply, 'bot', data.language);
+    } catch (err) {
+        console.error(err);
+        addMessage("Error communicating with AI.", 'bot');
+    }
+}
+
+function speak(text, lang) {
+    // Clear any playing audio
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Choose natural-sounding voices if available (L: Better Tamil Voice Quality)
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = null;
+    
+    if (lang === 'ta') {
+        utterance.lang = 'ta-IN';
+        // Prefer Google Tamil voice or similar
+        selectedVoice = voices.find(v => v.lang === 'ta-IN' && v.name.toLowerCase().includes('google'));
+        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'ta-IN');
+    } else {
+        utterance.lang = 'en-IN';
+        selectedVoice = voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('google'));
+        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'en-US' || v.lang === 'en-GB' || v.lang.startsWith('en'));
+    }
+    
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+function toggleListen() {
+    if (listening) {
+        if (recognition) recognition.stop();
+        listening = false;
+        document.getElementById('micBtn').style.background = '#dc3545';
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Speech Recognition is not supported in this browser.");
+        return;
+    }
+
+    recognition = new SpeechRecognition();
+    const selectedLang = localStorage.getItem("chatLang") || "en";
+    recognition.lang = selectedLang === 'ta' ? 'ta-IN' : 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        listening = true;
+        document.getElementById('micBtn').style.background = '#28a745';
+    };
+
+    recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        document.getElementById('chatInput').value = transcript;
+        sendMessage(transcript);
+    };
+
+    recognition.onerror = (e) => {
+        console.error("Speech recognition error", e);
+        listening = false;
+        document.getElementById('micBtn').style.background = '#dc3545';
+    };
+
+    recognition.onend = () => {
+        listening = false;
+        document.getElementById('micBtn').style.background = '#dc3545';
+    };
+
+    recognition.start();
 }
 </script>
 

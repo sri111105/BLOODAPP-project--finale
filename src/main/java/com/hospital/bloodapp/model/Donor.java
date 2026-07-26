@@ -63,4 +63,77 @@ public class Donor {
     public void setPhone(String phone) {
         this.phone = phone;
     }
+
+    private Integer donationCount = 0;
+    private String badgeLevel = "None";
+    private String preferredLanguage = "en";
+    private java.time.LocalDate lastDonationDate;
+    private Double latitude;
+    private Double longitude;
+    private Long hospitalId;
+    private Boolean visibleToHospital = false;
+
+    public Long getHospitalId() {
+        return hospitalId;
+    }
+
+    public void setHospitalId(Long hospitalId) {
+        this.hospitalId = hospitalId;
+    }
+
+    public Boolean getVisibleToHospital() {
+        return visibleToHospital;
+    }
+
+    public void setVisibleToHospital(Boolean visibleToHospital) {
+        this.visibleToHospital = visibleToHospital;
+    }
+
+    public Integer getDonationCount() {
+        return donationCount;
+    }
+
+    public void setDonationCount(Integer donationCount) {
+        this.donationCount = donationCount;
+    }
+
+    public String getBadgeLevel() {
+        return badgeLevel;
+    }
+
+    public void setBadgeLevel(String badgeLevel) {
+        this.badgeLevel = badgeLevel;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
+    }
+
+    public java.time.LocalDate getLastDonationDate() {
+        return lastDonationDate;
+    }
+
+    public void setLastDonationDate(java.time.LocalDate lastDonationDate) {
+        this.lastDonationDate = lastDonationDate;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
 }

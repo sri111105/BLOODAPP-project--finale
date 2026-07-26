@@ -1,69 +1,514 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Add Donor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Become a Blood Donor — BloodApp</title>
+<meta name="description" content="Register as a blood donor in Chennai, Tamil Nadu. Join our life-saving network and help hospitals find compatible donors faster with AI-powered matching.">
+
+<!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
 <style>
-body{
-    background:#f4f6f9;
-    padding:30px;
+:root {
+    --red-primary: #c0392b;
+    --red-light:   #e74c3c;
+    --red-bg:      #fff5f5;
+    --gray-100:    #f8f9fa;
+    --text-muted:  #6c757d;
 }
-.card{
-    max-width:500px;
-    margin:auto;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 15px;
+    background: linear-gradient(135deg, #1a0000 0%, #8b0000 40%, #c0392b 70%, #e74c3c 100%);
+    background-attachment: fixed;
 }
+
+/* ── Card ── */
+.register-card {
+    width: 100%;
+    max-width: 560px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0);     }
+}
+
+/* ── Card Header ── */
+.card-header-custom {
+    background: linear-gradient(135deg, var(--red-primary), var(--red-light));
+    padding: 28px 32px 22px;
+    color: white;
+    text-align: center;
+}
+.card-header-custom .icon-ring {
+    width: 64px; height: 64px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+}
+.card-header-custom h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+}
+.card-header-custom p {
+    font-size: 13px;
+    opacity: 0.88;
+    margin: 0;
+}
+
+/* ── Body ── */
+.card-body-custom { padding: 28px 32px 32px; }
+
+/* ── Section Dividers ── */
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 18px 0 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ffd0d0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Inputs ── */
+.form-label { font-size: 12.5px; font-weight: 600; color: #333; margin-bottom: 4px; }
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1.5px solid #e0e0e0;
+    font-size: 13.5px;
+    padding: 9px 13px;
+    transition: border-color .2s, box-shadow .2s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--red-primary);
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+    outline: none;
+}
+
+/* ── Geo button ── */
+.geo-btn {
+    background: #f0f0f0;
+    border: 1.5px solid #e0e0e0;
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #555;
+    transition: background .2s;
+}
+.geo-btn:hover { background: #ffeaea; color: var(--red-primary); }
+.geo-btn.loading { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.input-group .form-control { border-radius: 10px 0 0 10px; }
+
+/* ── Location status ── */
+#geoStatus {
+    font-size: 11.5px;
+    margin-top: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    display: none;
+}
+#geoStatus.success { background:#d4edda; color:#155724; display:block; }
+#geoStatus.error   { background:#f8d7da; color:#721c24; display:block; }
+
+/* ── Submit button ── */
+.btn-register {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--red-primary), var(--red-light));
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-top: 22px;
+    transition: transform .15s, box-shadow .15s, filter .15s;
+    box-shadow: 0 6px 18px rgba(192,57,43,0.35);
+}
+.btn-register:hover  { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(192,57,43,0.4); filter: brightness(1.06); }
+.btn-register:active { transform: translateY(0); }
+
+/* ── Back link ── */
+.back-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.back-link a { color: var(--red-primary); font-weight: 600; text-decoration: none; }
+.back-link a:hover { text-decoration: underline; }
+
+/* ── Blood group visual selector ── */
+.blood-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+}
+.blood-option input { display: none; }
+.blood-option label {
+    display: block;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 2px solid #eee;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    color: #555;
+    transition: all .15s;
+    user-select: none;
+}
+.blood-option input:checked + label {
+    border-color: var(--red-primary);
+    background: var(--red-bg);
+    color: var(--red-primary);
+    box-shadow: 0 2px 8px rgba(192,57,43,0.2);
+}
+.blood-option label:hover { border-color: #f5a5a5; }
+
+/* ── Progress dots ── */
+.step-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+.step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    transition: background .3s;
+}
+.step-dot.active { background: var(--red-primary); transform: scale(1.3); }
 </style>
 </head>
 
 <body>
 
-<div class="card shadow">
-    <h3 class="text-center text-success mb-3"> Become a Donor</h3>
+<div class="register-card">
+    <!-- Header -->
+    <div class="card-header-custom">
+        <div class="icon-ring">🩸</div>
+        <h1>Become a Blood Donor</h1>
+        <p>Join our life-saving network · AI-powered matching</p>
+    </div>
 
-    <!-- Changed id to avoid 'name' conflict -->
-    <input class="form-control mb-2" id="donorName" placeholder="Name">
-    
-    <select class="form-select mb-2" id="bloodGroup">
-        <option>A+</option><option>A-</option>
-        <option>B+</option><option>B-</option>
-        <option>O+</option><option>O-</option>
-        <option>AB+</option><option>AB-</option>
-    </select>
-    
-    <input class="form-control mb-2" id="address" placeholder="Address">
-    <input class="form-control mb-2" id="city" placeholder="City">
-    <input class="form-control mb-2" id="phone" placeholder="Phone">
+    <!-- Form Body -->
+    <div class="card-body-custom">
 
-    <button class="btn btn-success w-100" onclick="addDonor()">Submit</button>
+        <!-- Personal Info -->
+        <div class="section-label"><i class="bi bi-person-fill"></i> Personal Information</div>
+
+        <div class="mb-3">
+            <label class="form-label" for="donorName">Full Name <span class="text-danger">*</span></label>
+            <input class="form-control" id="donorName" placeholder="e.g. Arun Kumar" autocomplete="name" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="phone">Phone Number <span class="text-danger">*</span></label>
+            <input class="form-control" id="phone" type="tel" placeholder="e.g. 9876543210" autocomplete="tel" required>
+        </div>
+
+        <!-- Blood Group Visual Picker -->
+        <div class="section-label"><i class="bi bi-droplet-fill"></i> Blood Group <span class="text-danger">*</span></div>
+        <div class="blood-grid" id="bloodGrid">
+            <div class="blood-option"><input type="radio" name="bg" id="bg_Ap" value="A+"><label for="bg_Ap">A+</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_Am" value="A-"><label for="bg_Am">A−</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_Bp" value="B+"><label for="bg_Bp">B+</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_Bm" value="B-"><label for="bg_Bm">B−</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_Op" value="O+" checked><label for="bg_Op">O+</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_Om" value="O-"><label for="bg_Om">O−</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_ABp" value="AB+"><label for="bg_ABp">AB+</label></div>
+            <div class="blood-option"><input type="radio" name="bg" id="bg_ABm" value="AB-"><label for="bg_ABm">AB−</label></div>
+        </div>
+
+        <!-- Location -->
+        <div class="section-label"><i class="bi bi-geo-alt-fill"></i> Location</div>
+
+        <div class="mb-3">
+            <label class="form-label" for="address">Address</label>
+            <input class="form-control" id="address" placeholder="e.g. 12 Anna Nagar, Chennai" autocomplete="street-address">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="city">City / Area <span class="text-danger">*</span></label>
+            <input class="form-control" id="city" placeholder="e.g. Anna Nagar, Chennai" autocomplete="address-level2" required>
+            <div style="font-size:11px; color:#888; margin-top:3px;">Enter your city or neighbourhood — your location will be geocoded for proximity matching.</div>
+        </div>
+
+        <div class="mb-1">
+            <label class="form-label">Coordinates (for map matching)</label>
+            <div class="input-group">
+                <input class="form-control" id="coordsDisplay" placeholder="Click 📍 to auto-detect your location" readonly
+                       style="background:#fafafa; font-size:12px; color:#555;">
+                <button class="geo-btn" id="geoBtn" onclick="captureLocation()" title="Auto-detect my location">
+                    📍
+                </button>
+            </div>
+            <div id="geoStatus"></div>
+        </div>
+        <!-- Hidden fields -->
+        <input type="hidden" id="latitude">
+        <input type="hidden" id="longitude">
+
+        <!-- Preferences -->
+        <div class="section-label"><i class="bi bi-sliders"></i> Preferences & History</div>
+
+        <div class="mb-3">
+            <label class="form-label" for="preferredLanguage">Preferred Language</label>
+            <select class="form-select" id="preferredLanguage">
+                <option value="en">🇬🇧 English</option>
+                <option value="ta">🇮🇳 Tamil (தமிழ்)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="lastDonationDate">
+                Last Donation Date
+                <span class="text-muted fw-normal" style="font-size:11px;">(Optional — used for 90-day eligibility check)</span>
+            </label>
+            <input type="date" class="form-control" id="lastDonationDate"
+                   max="" placeholder="Leave blank if first-time donor">
+        </div>
+
+        <!-- First-Time Donor Option -->
+        <div class="form-check mb-3 p-0" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="firstTimeDonor" style="width:16px; height:16px; cursor:pointer;">
+            <label for="firstTimeDonor" style="font-size: 13.5px; font-weight: 600; color: #333; cursor:pointer; margin:0;">
+                I am a First-Time Donor
+            </label>
+        </div>
+
+        <div class="mb-3" id="hospitalSelectGroup">
+            <label class="form-label" for="hospitalSelect">Nearest Base Hospital <span class="text-danger">*</span></label>
+            <select class="form-select" id="hospitalSelect" required>
+                <option value="">-- Loading Hospitals --</option>
+            </select>
+        </div>
+
+        <!-- Consent Checkbox -->
+        <div class="form-check mb-3 p-0" style="display: flex; align-items: flex-start; gap: 8px;">
+            <input type="checkbox" id="consentCheckbox" checked style="width:16px; height:16px; cursor:pointer; margin-top: 3px;">
+            <label for="consentCheckbox" style="font-size: 12.5px; color: #555; cursor:pointer; margin:0; line-height: 1.4;">
+                I agree to share my details with hospital management (Mark as visible to hospital) <span class="text-danger">*</span>
+            </label>
+        </div>
+
+        <!-- Submit -->
+        <button class="btn-register" id="submitBtn" onclick="addDonor()">
+            <i class="bi bi-heart-fill me-2"></i> Register as Donor
+        </button>
+
+        <div class="back-link">
+            <a href="index.html"><i class="bi bi-arrow-left-short"></i> Back to Home</a>
+        </div>
+    </div>
 </div>
 
 <script>
-function addDonor(){
-    // Use unique IDs to avoid conflicts with 'name'
+// Set max date for lastDonationDate to today
+document.getElementById("lastDonationDate").max = new Date().toISOString().split('T')[0];
+
+let hospitalsList = [];
+
+window.addEventListener('DOMContentLoaded', (event) => {
+    fetch('/api/hospital/hospitals')
+    .then(res => res.json())
+    .then(data => {
+        hospitalsList = data;
+        const select = document.getElementById("hospitalSelect");
+        select.innerHTML = '<option value="">-- Select Nearest Hospital --</option>';
+        data.forEach(h => {
+            const opt = document.createElement("option");
+            opt.value = h.id;
+            opt.textContent = `${h.name} (${h.city})`;
+            select.appendChild(opt);
+        });
+    })
+    .catch(err => console.error("Failed to load hospitals", err));
+});
+
+function toggleHospitalSelect() {
+    const isFirstTime = document.getElementById("firstTimeDonor").checked;
+    const group = document.getElementById("hospitalSelectGroup");
+    group.style.display = isFirstTime ? "block" : "none";
+}
+
+/* ── Geolocation Capture ── */
+function captureLocation() {
+    const btn    = document.getElementById("geoBtn");
+    const status = document.getElementById("geoStatus");
+    const display = document.getElementById("coordsDisplay");
+
+    if (!navigator.geolocation) {
+        showGeoStatus("error", "Geolocation is not supported by your browser.");
+        return;
+    }
+
+    btn.textContent = "⏳";
+    btn.disabled = true;
+    status.className = "";
+    status.style.display = "none";
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const lat = pos.coords.latitude.toFixed(5);
+            const lng = pos.coords.longitude.toFixed(5);
+            document.getElementById("latitude").value  = lat;
+            document.getElementById("longitude").value = lng;
+            display.value = `Lat: ${lat}, Lng: ${lng}`;
+            btn.textContent = "✅";
+            btn.disabled = false;
+            showGeoStatus("success", "📍 Location captured successfully! Your coordinates will be used for proximity matching.");
+        },
+        (err) => {
+            btn.textContent = "📍";
+            btn.disabled = false;
+            let msg = "Failed to get location.";
+            if (err.code === 1) msg = "Location permission denied. Please allow location access.";
+            if (err.code === 2) msg = "Location unavailable. Try entering your city manually.";
+            if (err.code === 3) msg = "Location request timed out. Please try again.";
+            showGeoStatus("error", "⚠️ " + msg);
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+    );
+}
+
+function showGeoStatus(type, message) {
+    const el = document.getElementById("geoStatus");
+    el.className = type;
+    el.textContent = message;
+}
+
+/* ── Get selected blood group ── */
+function getSelectedBloodGroup() {
+    const checked = document.querySelector('input[name="bg"]:checked');
+    return checked ? checked.value : "O+";
+}
+
+/* ── Form Submission ── */
+function addDonor() {
+    const name  = document.getElementById("donorName").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const city  = document.getElementById("city").value.trim();
+
+    if (!name || !phone || !city) {
+        showTemporaryAlert("⚠️ Please fill in Name, Phone, and City.");
+        return;
+    }
+    if (!/^\d{10}$/.test(phone.replace(/\s+/g, ''))) {
+        showTemporaryAlert("⚠️ Please enter a valid 10-digit phone number.");
+        return;
+    }
+
+    const hospitalSelect = document.getElementById("hospitalSelect");
+    const hospitalId = hospitalSelect.value ? parseInt(hospitalSelect.value) : null;
+    
+    if (!hospitalId) {
+        showTemporaryAlert("⚠️ Please select your nearest base hospital.");
+        return;
+    }
+
+    const consentChecked = document.getElementById("consentCheckbox").checked;
+    const lastDate = document.getElementById("lastDonationDate").value;
+
     const donor = {
-        name: document.getElementById("donorName").value,
-        bloodGroup: document.getElementById("bloodGroup").value,
-        address: document.getElementById("address").value,
-        city: document.getElementById("city").value,
-        phone: document.getElementById("phone").value
+        name:              name,
+        bloodGroup:        getSelectedBloodGroup(),
+        address:           document.getElementById("address").value.trim(),
+        city:              city,
+        phone:             phone,
+        preferredLanguage: document.getElementById("preferredLanguage").value,
+        lastDonationDate:  lastDate || null,
+        latitude:          parseFloatOrNull(document.getElementById("latitude").value),
+        longitude:         parseFloatOrNull(document.getElementById("longitude").value),
+        donationCount:     0,
+        badgeLevel:        "None",
+        hospitalId:        hospitalId,
+        visibleToHospital: consentChecked
     };
 
-    console.log(donor); // optional: check JSON before POST
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Registering...';
 
     fetch("/blood", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(donor)
     })
     .then(res => {
-        if(!res.ok) throw new Error("Failed to add donor");
-        alert("Thank you for donating blood!");
-        window.location.href = "index.html";
+        if (!res.ok) throw new Error("Failed to add donor");
+        return res.json();
     })
-    .catch(err => alert(err));
+    .then(() => {
+        btn.innerHTML = '✅ Registered Successfully!';
+        btn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1200);
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-heart-fill me-2"></i> Register as Donor';
+        showTemporaryAlert("❌ Registration failed: " + err.message);
+    });
+}
+
+function parseFloatOrNull(val) {
+    const f = parseFloat(val);
+    return isNaN(f) ? null : f;
+}
+
+function showTemporaryAlert(msg) {
+    const existing = document.getElementById("formAlert");
+    if (existing) existing.remove();
+
+    const el = document.createElement("div");
+    el.id = "formAlert";
+    el.style.cssText = `
+        position:fixed; top:20px; left:50%; transform:translateX(-50%);
+        background:#fff; border:2px solid #c0392b; color:#c0392b;
+        padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600;
+        box-shadow:0 8px 24px rgba(0,0,0,0.15); z-index:9999;
+        animation: slideDown .3s ease;
+    `;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
 }
 </script>
 
